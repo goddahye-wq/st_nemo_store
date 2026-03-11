@@ -43,10 +43,24 @@ st.markdown("""
 # 2. 데이터 로드 및 전처리 함수
 @st.cache_data
 def load_data():
-    # 배포 환경을 고려하여 상대 경로 사용
-    base_path = os.path.dirname(__file__)
+    # 현재 파일(app.py)의 위치를 기준으로 절대 경로 생성
+    base_path = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(base_path, "nemo_store.db")
-    conn = sqlite3.connect(db_path)
+    
+    # [방어 로직] 파일이 실제로 존재하는지 먼저 확인 (빈 파일 자동 생성 방지)
+    if not os.path.exists(db_path):
+        import os
+        # 디버깅을 위해 현재 경로의 파일 목록을 에러 메시지에 포함
+        files_in_dir = os.listdir(base_path)
+        raise FileNotFoundError(
+            f"데이터베이스 파일('nemo_store.db')을 찾을 수 없습니다.\n"
+            f"예상 경로: {db_path}\n"
+            f"현재 폴더({base_path}) 내 파일 목록: {files_in_dir}\n"
+            f"GitHub에 DB 파일이 업로드되었는지 확인해 주세요."
+        )
+    
+    # uri=True 옵션을 사용해 읽기 전용으로 연결 (파일 자동 생성으로 인한 'no such table' 에러 차단)
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     df = pd.read_sql_query("SELECT * FROM stores", conn)
     conn.close()
     
