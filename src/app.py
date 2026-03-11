@@ -49,7 +49,6 @@ def load_data():
     
     # [방어 로직] 파일이 실제로 존재하는지 먼저 확인 (빈 파일 자동 생성 방지)
     if not os.path.exists(db_path):
-        import os
         # 디버깅을 위해 현재 경로의 파일 목록을 에러 메시지에 포함
         files_in_dir = os.listdir(base_path)
         raise FileNotFoundError(
